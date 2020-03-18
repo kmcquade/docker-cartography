@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+  neo4j:
+    container_name: neo4j
+    image: neo4j:latest
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - "$HOME/neo4j/data:/data"
+      - "$HOME/neo4j/logs:/logs"
+      - "$HOME/neo4j/import:/var/lib/neo4j/import"
+      - "$HOME/neo4j/plugins:/plugins"
+    environment:
+      NEO4J_AUTH: "neo4j/test"
+  cartography:
+    container_name: cartography
+    image: "infrasec/cartography:latest"
+    environment:
+      # TODO: Figure out what to do about AWS Access keys
+      NEO4J_PASSWORD: "test"
+      NEO4J_USER: "neo4j"
+      NEO4J_URI: "http://neo4j:7474"
+      BOLT_URI: "bolt://neo4j:7687"
+      SYNC_ALL_PROFILES: ""
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+    links:
+      - "neo4j:neo4j"
+    command: sh -c "/usr/bin/entrypoint.sh http://neo4j:7474"
+    depends_on:
+      - neo4j
