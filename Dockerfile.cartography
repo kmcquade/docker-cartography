@@ -1,1 +1,23 @@
-#!/usr/bin/env bash
+ARG FROM_TAG=3.8-slim-buster
+FROM python:${FROM_TAG}
+
+USER root
+RUN pip install cartography
+
+# Install AWS CLI
+RUN apt-get update && \
+    apt-get -y install curl unzip && \
+    apt-get autoremove && \
+    apt-get purge && \
+    find /var/lib/apt/lists/ -maxdepth 1 -type f -delete && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    rm awscliv2.zip && \
+    ./aws/install && \
+    rm -rf ./aws/
+
+# Allow the container to accept arguments
+COPY ./utils/wait-for.sh /usr/bin/wait-for.sh
+COPY ./cartography/entrypoint.sh /usr/bin/entrypoint.sh
+
+CMD [ "/usr/bin/entrypoint.sh" ]
